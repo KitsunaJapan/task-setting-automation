@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StratTask</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --accent:#1D9E75;--accent2:#0F6E56;
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#ebebea;
+  --text:#1a1a18;--text2:#6b6b68;
+  --bd:rgba(0,0,0,0.1);--bd2:rgba(0,0,0,0.2);
+  --danger:#a32d2d;--danger-bg:#fcebeb;--danger-bd:#f09595;
+  --info:#185fa5;--info-bg:#e6f1fb;
+  --warn-bg:#faeeda;--warn-text:#854f0b;--warn-bd:#fac775;
+  --ok-bg:#e1f5ee;--ok-text:#0f6e56;
+  --rad:8px;--rad-lg:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--bg2:#262624;--bg3:#2e2e2c;
+  --text:#f0f0ee;--text2:#9a9a97;
+  --bd:rgba(255,255,255,0.1);--bd2:rgba(255,255,255,0.2);
+  --danger-bg:#3d1515;--info-bg:#0d2a47;
+  --warn-bg:#3d2f0a;--ok-bg:#0a2e1e;
+}}
+body{font-family:'Syne',sans-serif;color:var(--text);background:var(--bg);min-height:100vh;}
+#app{display:flex;flex-direction:column;min-height:100vh;}
+
+/* HEADER */
+.hd{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:0.5px solid var(--bd);background:var(--bg);gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;letter-spacing:-.3px;color:var(--text);text-decoration:none;}
+.logo-mark{width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;}
+.logo-mark svg{width:17px;height:17px;}
+.tabs{display:flex;gap:2px;background:var(--bg2);border-radius:var(--rad);padding:3px;}
+.tab{padding:5px 13px;font-size:11px;font-weight:500;border-radius:6px;border:none;cursor:pointer;background:transparent;color:var(--text2);font-family:'Syne',sans-serif;transition:all .15s;}
+.tab:hover{color:var(--text);}
+.tab.on{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.hd-r{display:flex;align-items:center;gap:9px;}
+.sh-status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--bd2);}
+.dot.ok{background:var(--accent);}
+
+/* BUTTONS */
+.btn{padding:6px 13px;font-size:11px;font-weight:500;border-radius:var(--rad);border:0.5px solid var(--bd2);cursor:pointer;background:transparent;color:var(--text);font-family:'Syne',sans-serif;transition:all .15s;white-space:nowrap;}
+.btn:hover{background:var(--bg2);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-p{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-p:hover{background:var(--accent2);}
+.btn-sm{padding:4px 10px;font-size:10px;}
+.btn-del{color:var(--danger);border-color:var(--danger-bd);}
+.btn-del:hover{background:var(--danger-bg);}
+.btn-icon{width:26px;height:26px;border-radius:var(--rad);border:0.5px solid var(--bd);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text2);transition:all .15s;flex-shrink:0;}
+.btn-icon:hover{background:var(--bg2);color:var(--text);}
+
+/* VIEWS */
+.view{display:none;}
+.view.on{display:block;}
+.content{padding:20px;max-width:1200px;margin:0 auto;}
+
+/* ALERTS */
+.alert{display:flex;align-items:flex-start;gap:9px;padding:10px 13px;border-radius:var(--rad-lg);margin-bottom:12px;font-size:11px;line-height:1.6;}
+.alert-warn{background:var(--warn-bg);border:0.5px solid var(--warn-bd);color:var(--warn-text);}
+.alert-ok{background:var(--ok-bg);border:0.5px solid rgba(15,110,86,.3);color:var(--ok-text);}
+.alert-info{background:var(--info-bg);border:0.5px solid rgba(24,95,165,.3);color:var(--info);}
+
+/* FORM */
+.card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rad-lg);padding:18px;margin-bottom:14px;}
+.card-hd{font-size:13px;font-weight:600;margin-bottom:13px;padding-bottom:11px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.fi{display:flex;flex-direction:column;gap:4px;}
+.fi.full{grid-column:1/-1;}
+label{font-size:9px;font-weight:600;color:var(--text2);letter-spacing:.5px;text-transform:uppercase;}
+input,select,textarea{font-family:'Syne',sans-serif;font-size:12px;color:var(--text);background:var(--bg2);border:0.5px solid var(--bd);border-radius:var(--rad);padding:7px 9px;outline:none;transition:border-color .15s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:60px;line-height:1.5;}
+.ms-list{display:flex;flex-direction:column;gap:5px;margin-bottom:6px;}
+.ms-row{display:flex;align-items:center;gap:6px;}
+.ms-row input[type=text]{flex:1;}
+.ms-row input[type=date]{width:135px;}
+.form-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:13px;padding-top:11px;border-top:0.5px solid var(--bd);}
+
+/* PRIORITY BADGE */
+.pb{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:.4px;}
+.p-asap{background:#fcebeb;color:#a32d2d;}
+.p-high{background:#faeeda;color:#854f0b;}
+.p-mid{background:#e6f1fb;color:#185fa5;}
+.p-low{background:#eaf3de;color:#3b6d11;}
+
+/* KPI */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px;}
+.stat{background:var(--bg2);border-radius:var(--rad);padding:11px 14px;}
+.stat-lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.stat-val{font-size:20px;font-weight:600;font-family:'DM Mono',monospace;}
+.sheet-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.sheet-title{font-size:13px;font-weight:600;}
+.kpi-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rad-lg);overflow:hidden;margin-bottom:8px;}
+.kpi-main{padding:13px 15px;display:grid;grid-template-columns:28px 1fr auto;align-items:start;gap:11px;}
+.kpi-idx{font-family:'DM Mono',monospace;font-size:10px;color:var(--text2);padding-top:2px;}
+.kpi-body{min-width:0;}
+.kpi-name{font-size:13px;font-weight:600;margin-bottom:5px;word-break:break-word;line-height:1.4;}
+.kpi-name[contenteditable=true]{outline:none;border-bottom:1px dashed var(--bd2);cursor:text;padding-bottom:1px;}
+.kpi-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:7px;}
+.kpi-mi{font-size:10px;color:var(--text2);}
+.prog-wrap{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:3px;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s;}
+.prog-lbl{font-size:9px;color:var(--text2);font-family:'DM Mono',monospace;}
+.kpi-ms{border-top:0.5px solid var(--bd);background:var(--bg2);padding:9px 15px;}
+.kpi-ms-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:5px;}
+.ms-check{display:flex;align-items:center;gap:7px;padding:3px 0;}
+.ms-check input[type=checkbox]{width:13px;height:13px;flex-shrink:0;accent-color:var(--accent);cursor:pointer;}
+.ms-check-lbl{font-size:11px;display:flex;align-items:center;gap:6px;flex:1;cursor:pointer;}
+.ms-check-lbl.done{text-decoration:line-through;color:var(--text2);}
+.ms-date{font-size:9px;color:var(--text2);font-family:'DM Mono',monospace;}
+
+/* WEEKLY */
+.week-scroll{overflow-x:auto;padding-bottom:16px;}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(148px,1fr));gap:6px;min-width:1040px;}
+.day-col{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rad-lg);overflow:hidden;min-height:220px;display:flex;flex-direction:column;}
+.day-hd{padding:8px 11px;border-bottom:0.5px solid var(--bd);background:var(--bg2);}
+.day-name{font-size:9px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;}
+.day-date{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;}
+.today .day-hd{background:var(--ok-bg);}
+.today .day-name{color:var(--accent2);}
+.today .day-date{color:var(--accent);}
+.day-tasks{padding:5px;display:flex;flex-direction:column;gap:3px;flex:1;}
+.task-card{background:var(--bg2);border:0.5px solid var(--bd);border-radius:var(--rad);padding:6px 8px;}
+.task-card.done{opacity:.5;}
+.tc-top{display:flex;align-items:flex-start;gap:5px;margin-bottom:3px;}
+.tc-chk{width:12px;height:12px;flex-shrink:0;accent-color:var(--accent);cursor:pointer;margin-top:2px;}
+.tc-name{font-size:10px;font-weight:500;line-height:1.4;flex:1;word-break:break-word;}
+.tc-name[contenteditable=true]{outline:none;border-bottom:1px dashed var(--bd2);cursor:text;}
+.task-card.done .tc-name{text-decoration:line-through;}
+.tc-detail{font-size:9px;color:var(--text2);margin-bottom:3px;line-height:1.4;}
+.tc-foot{display:flex;align-items:center;justify-content:space-between;}
+.tc-time{font-size:8px;color:var(--text2);font-family:'DM Mono',monospace;}
+.day-add{padding:5px;flex-shrink:0;}
+.day-add-btn{width:100%;padding:4px;font-size:9px;color:var(--text2);background:transparent;border:0.5px dashed var(--bd);border-radius:var(--rad);cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s;}
+.day-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* SYNC */
+.sync-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rad-lg);padding:16px;margin-bottom:12px;max-width:640px;}
+.sync-item{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--bd);gap:14px;}
+.sync-item:last-child{border-bottom:none;padding-bottom:0;}
+.sync-item-body{flex:1;}
+.sync-item-title{font-size:12px;font-weight:500;margin-bottom:2px;}
+.sync-item-desc{font-size:10px;color:var(--text2);line-height:1.5;}
+.sync-result{font-size:10px;margin-top:6px;padding:5px 8px;border-radius:var(--rad);display:none;}
+.sync-result.ok{background:var(--ok-bg);color:var(--ok-text);}
+.sync-result.ng{background:var(--danger-bg);color:var(--danger);}
+
+/* SETTINGS */
+.setting-card{background:var(--bg);border:0.5px solid var(--bd);border-radius:var(--rad-lg);padding:16px;margin-bottom:12px;max-width:580px;}
+.setting-card-hd{font-size:12px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:0.5px solid var(--bd);}
+.steps{background:var(--bg2);border-radius:var(--rad);padding:12px;margin-bottom:13px;}
+.step-row{display:flex;gap:9px;padding:4px 0;font-size:11px;color:var(--text2);align-items:flex-start;line-height:1.5;}
+.step-num{width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.step-row a{color:var(--info);}
+code{font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:3px;font-family:'DM Mono',monospace;}
+.env-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;}
+.env-table th{text-align:left;padding:6px 8px;background:var(--bg2);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);}
+.env-table td{padding:6px 8px;border-top:0.5px solid var(--bd);font-family:'DM Mono',monospace;font-size:10px;}
+.badge-ok{display:inline-block;padding:1px 6px;border-radius:10px;background:var(--ok-bg);color:var(--ok-text);font-size:9px;font-weight:600;}
+.badge-ng{display:inline-block;padding:1px 6px;border-radius:10px;background:var(--danger-bg);color:var(--danger);font-size:9px;font-weight:600;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;}
+.overlay.on{display:flex;}
+.modal{background:var(--bg);border-radius:var(--rad-lg);border:0.5px solid var(--bd);padding:18px;width:460px;max-width:100%;max-height:88vh;overflow-y:auto;}
+.modal-hd{font-size:13px;font-weight:600;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:13px;padding-top:11px;border-top:0.5px solid var(--bd);}
+
+/* LOADING / EMPTY */
+.spinner{width:14px;height:14px;border:2px solid var(--bd2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:48px 16px;color:var(--text2);font-size:12px;}
+.empty-ico{font-size:30px;margin-bottom:8px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg);border:0.5px solid var(--bd2);border-radius:var(--rad-lg);padding:9px 15px;font-size:11px;z-index:200;display:none;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,.12);line-height:1.5;}
+.toast.ok{border-color:rgba(15,110,86,.4);color:var(--ok-text);}
+.toast.ng{border-color:var(--danger-bd);color:var(--danger);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hd">
+    <a class="logo" href="#">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/><rect x="3" y="3" width="18" height="18" rx="2"/>
+        </svg>
+      </div>
+      StratTask
+    </a>
+    <div class="tabs">
+      <button class="tab on" onclick="go('form')">目標入力</button>
+      <button class="tab" onclick="go('kpi')">中長期KPI</button>
+      <button class="tab" onclick="go('weekly')">週次タスク</button>
+      <button class="tab" onclick="go('sync')">Sheets同期</button>
+      <button class="tab" onclick="go('settings')">設定</button>
+    </div>
+    <div class="hd-r">
+      <div class="sh-status">
+        <div class="dot" id="sh-dot"></div>
+        <span id="sh-label">確認中...</span>
+      </div>
+      <button class="btn btn-sm btn-p" onclick="syncAll()">一括同期</button>
+    </div>
+  </div>
+
+  <!-- ── 目標入力 ── -->
+  <div class="view on" id="view-form">
+    <div class="content">
+      <div id="ai-warn" class="alert alert-warn" style="display:none;">
+        サーバーにAnthropicのAPIキーが未設定です。AIタスク自動生成が無効です。
+      </div>
+      <div id="sheets-warn" class="alert alert-warn" style="display:none;">
+        Google Sheetsが未接続です。「設定」タブでサービスアカウントを設定してください。
+      </div>
+      <div class="card">
+        <div class="card-hd">
+          <span>中長期目標を追加</span>
+          <span style="font-size:9px;font-weight:400;color:var(--text2);">* 必須</span>
+        </div>
+        <div class="fg">
+          <div class="fi full">
+            <label>目標内容（プロジェクト名）*</label>
+            <textarea id="f-content" placeholder="例：新規事業の立ち上げ、売上20%向上..." rows="2"></textarea>
+          </div>
+          <div class="fi"><label>達成期間 *</label><input type="text" id="f-period" placeholder="例：2026年Q3、6ヶ月"></div>
+          <div class="fi"><label>担当者</label><input type="text" id="f-owner" placeholder="例：田中、営業チーム"></div>
+          <div class="fi"><label>優先度 *</label>
+            <select id="f-prio">
+              <option value="">選択してください</option>
+              <option value="asap">ASAP</option>
+              <option value="high">高</option>
+              <option value="mid">中</option>
+              <option value="low">低</option>
+            </select>
+          </div>
+          <div class="fi"><label>備考（任意）</label><input type="text" id="f-note" placeholder="補足情報"></div>
+          <div class="fi full">
+            <label>サブタスク / マイルストーン（最大4件）</label>
+            <div class="ms-list" id="ms-list"></div>
+            <button class="btn btn-sm" onclick="addMs()" id="add-ms-btn">+ マイルストーンを追加</button>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="btn" onclick="clearForm()">クリア</button>
+          <button class="btn btn-p" onclick="submitGoal()" id="submit-btn">目標を追加 → AIタスク生成 → Sheetsへ転記</button>
+        </div>
+      </div>
+      <div id="recent-wrap" style="display:none;">
+        <div class="sheet-hd"><div class="sheet-title">直近の目標</div></div>
+        <div id="recent-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 中長期KPI ── -->
+  <div class="view" id="view-kpi">
+    <div class="content">
+      <div class="stats">
+        <div class="stat"><div class="stat-lbl">総目標数</div><div class="stat-val" id="s-total">0</div></div>
+        <div class="stat"><div class="stat-lbl">進行中</div><div class="stat-val" id="s-active">0</div></div>
+        <div class="stat"><div class="stat-lbl">平均進捗</div><div class="stat-val" id="s-avg">0%</div></div>
+      </div>
+      <div class="sheet-hd">
+        <div class="sheet-title">シート1：中長期KPI</div>
+        <div style="display:flex;gap:7px;align-items:center;">
+          <select id="kpi-sort" style="font-size:10px;padding:4px 7px;" onchange="renderKPI()">
+            <option value="priority">優先度順</option>
+            <option value="date">追加順</option>
+          </select>
+          <button class="btn btn-sm" onclick="go('form')">+ 目標追加</button>
+        </div>
+      </div>
+      <div id="kpi-list"></div>
+    </div>
+  </div>
+
+  <!-- ── 週次タスク ── -->
+  <div class="view" id="view-weekly">
+    <div class="content">
+      <div class="sheet-hd">
+        <div class="sheet-title">シート2：日別目標設定（今週）</div>
+        <div style="display:flex;gap:7px;">
+          <select id="w-sort" style="font-size:10px;padding:4px 7px;" onchange="renderWeekly()">
+            <option value="priority">優先度順</option>
+            <option value="time">時間帯順</option>
+          </select>
+        </div>
+      </div>
+      <div class="week-scroll">
+        <div class="week-grid" id="week-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sheets同期 ── -->
+  <div class="view" id="view-sync">
+    <div class="content">
+      <div id="sync-ng" class="alert alert-warn" style="display:none;">
+        Google Sheetsが未接続です。「設定」タブでサービスアカウントJSONを設定してください。
+      </div>
+      <div class="sync-card">
+        <div class="card-hd" style="font-size:12px;font-weight:600;margin-bottom:12px;">同期メニュー</div>
+        <div class="sync-item">
+          <div class="sync-item-body">
+            <div class="sync-item-title">シート1「中長期KPI」へ転記</div>
+            <div class="sync-item-desc">プロジェクト名・優先度・期間・担当者・マイルストーンを書き込みます</div>
+            <div id="res-kpi" class="sync-result"></div>
+          </div>
+          <button class="btn btn-sm" onclick="syncKPI()">実行</button>
+        </div>
+        <div class="sync-item">
+          <div class="sync-item-body">
+            <div class="sync-item-title">シート2「日別目標設定」へ転記</div>
+            <div class="sync-item-desc">日付・時間帯・タスク名・詳細・優先度を書き込みます（優先度順にソート）</div>
+            <div id="res-tasks" class="sync-result"></div>
+          </div>
+          <button class="btn btn-sm" onclick="syncTasks()">実行</button>
+        </div>
+        <div class="sync-item">
+          <div class="sync-item-body">
+            <div class="sync-item-title">一括同期（全て実行）</div>
+            <div class="sync-item-desc">KPI転記 → タスク転記 を順番に実行します</div>
+            <div id="res-all" class="sync-result"></div>
+          </div>
+          <button class="btn btn-sm btn-p" onclick="syncAll()">一括実行</button>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--text2);line-height:1.8;max-width:580px;">
+        ※ 既存行は上書きしません（空き行にのみ書き込み）<br>
+        ※ タスクのチェックはリアルタイムでSheetsに反映されます<br>
+        ※ タスク進捗はKPIの進捗率に自動連動します
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 設定 ── -->
+  <div class="view" id="view-settings">
+    <div class="content">
+      <div class="setting-card">
+        <div class="setting-card-hd">サーバー環境変数の状態</div>
+        <div id="env-status"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);"><div class="spinner"></div>確認中...</div></div>
+      </div>
+      <div class="setting-card">
+        <div class="setting-card-hd">Renderへのデプロイ手順</div>
+        <div class="steps">
+          <div class="step-row"><div class="step-num">1</div><div>GitHubにプッシュ → <a href="https://render.com" target="_blank">Render.com</a> で「New Web Service」</div></div>
+          <div class="step-row"><div class="step-num">2</div><div>Build: <code>npm install</code> / Start: <code>npm start</code></div></div>
+          <div class="step-row"><div class="step-num">3</div><div>Environment Variables に下記を設定してデプロイ</div></div>
+        </div>
+        <table class="env-table">
+          <thead><tr><th>変数名</th><th>説明</th></tr></thead>
+          <tbody>
+            <tr><td>ANTHROPIC_API_KEY</td><td>sk-ant-... （AIタスク生成）</td></tr>
+            <tr><td>GOOGLE_SERVICE_ACCOUNT_JSON</td><td>サービスアカウントのJSONキー全文</td></tr>
+            <tr><td>SPREADSHEET_ID</td><td>10gH3TlsQOtgPnDW1AhHErpxNsBXv5kgudGJuHms5jyE</td></tr>
+            <tr><td>APP_USER</td><td>Basic認証のユーザーID</td></tr>
+            <tr><td>APP_PASSWORD</td><td>Basic認証のパスワード</td></tr>
+            <tr><td>NODE_ENV</td><td>production</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="setting-card">
+        <div class="setting-card-hd">Google サービスアカウント設定手順</div>
+        <div class="steps">
+          <div class="step-row"><div class="step-num">1</div><div><a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> でプロジェクト作成 → Sheets API有効化</div></div>
+          <div class="step-row"><div class="step-num">2</div><div>「IAMと管理」→「サービスアカウント」→「作成」</div></div>
+          <div class="step-row"><div class="step-num">3</div><div>「キー」タブ →「鍵を追加」→「JSON」でダウンロード</div></div>
+          <div class="step-row"><div class="step-num">4</div><div>JSONファイルの内容を丸ごと <code>GOOGLE_SERVICE_ACCOUNT_JSON</code> に設定</div></div>
+          <div class="step-row"><div class="step-num">5</div><div>サービスアカウントのメールアドレスをスプレッドシートの「共有」に追加（編集者権限）</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: タスク追加 -->
+<div class="overlay" id="m-task">
+  <div class="modal">
+    <div class="modal-hd"><span>タスクを追加</span><button class="btn-icon" onclick="closeM('m-task')">×</button></div>
+    <div class="fg">
+      <div class="fi"><label>日付</label><input type="date" id="mt-date"></div>
+      <div class="fi"><label>時間帯</label>
+        <select id="mt-time">
+          <option value="09-12">09:00〜12:00</option>
+          <option value="12-15">12:00〜15:00</option>
+          <option value="15-18">15:00〜18:00</option>
+          <option value="18-21">18:00〜21:00</option>
+          <option value="21-24">21:00〜24:00</option>
+        </select>
+      </div>
+      <div class="fi full"><label>タスク名 *</label><input type="text" id="mt-name" placeholder="タスク名を入力"></div>
+      <div class="fi full"><label>詳細</label><textarea id="mt-detail" rows="2" placeholder="タスクの詳細内容"></textarea></div>
+      <div class="fi"><label>優先度</label>
+        <select id="mt-prio">
+          <option value="asap">ASAP</option><option value="high">高</option>
+          <option value="mid" selected>中</option><option value="low">低</option>
+        </select>
+      </div>
+      <div class="fi"><label>紐付く目標</label><select id="mt-goal"></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeM('m-task')">キャンセル</button>
+      <button class="btn btn-p" onclick="saveTask()">追加</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────
+const SK = 'strattask_v4';
+let S = { goals:[], tasks:[], config:null };
+
+async function init() {
+  loadLocal();
+  await fetchConfig();
+  renderRecent();
+}
+
+function loadLocal() {
+  try {
+    const d = localStorage.getItem(SK);
+    if (d) { const p = JSON.parse(d); S.goals = p.goals||[]; S.tasks = p.tasks||[]; }
+  } catch(e) {}
+}
+function saveLocal() {
+  try { localStorage.setItem(SK, JSON.stringify({ goals:S.goals, tasks:S.tasks })); } catch(e) {}
+}
+
+async function fetchConfig() {
+  try {
+    const r = await fetch('/api/config');
+    S.config = await r.json();
+    document.getElementById('ai-warn').style.display   = S.config.hasAnthropicKey ? 'none' : 'flex';
+    document.getElementById('sheets-warn').style.display = S.config.hasSheets ? 'none' : 'flex';
+    const dot = document.getElementById('sh-dot');
+    const lbl = document.getElementById('sh-label');
+    if (S.config.hasSheets) { dot.className='dot ok'; lbl.textContent='Sheets接続済'; }
+    else { dot.className='dot'; lbl.textContent='Sheets未設定'; }
+  } catch(e) {}
+}
+
+// ────────────────────────────────────────
+// UTILS
+// ────────────────────────────────────────
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+type; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 3500);
+}
+function pOrder(p){ return {asap:0,high:1,mid:2,low:3}[p]??4; }
+function pLabel(p){ return {asap:'ASAP',high:'高',mid:'中',low:'低'}[p]??p; }
+function pClass(p){ return {asap:'p-asap',high:'p-high',mid:'p-mid',low:'p-low'}[p]??''; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function go(v) {
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('on'));
+  document.getElementById('view-'+v).classList.add('on');
+  const idx = {form:0,kpi:1,weekly:2,sync:3,settings:4}[v];
+  document.querySelectorAll('.tab')[idx]?.classList.add('on');
+  if(v==='kpi') renderKPI();
+  if(v==='weekly') renderWeekly();
+  if(v==='sync') updateSyncView();
+  if(v==='settings') renderSettings();
+}
+
+function updateSyncView() {
+  document.getElementById('sync-ng').style.display = S.config?.hasSheets ? 'none' : 'flex';
+}
+
+// ────────────────────────────────────────
+// MILESTONES
+// ────────────────────────────────────────
+let msItems = [];
+function addMs() {
+  if(msItems.length>=4){ toast('マイルストーンは最大4件です','ng'); return; }
+  msItems.push({id:Date.now(),text:'',date:''});
+  renderMsInputs();
+  document.getElementById('add-ms-btn').disabled = msItems.length>=4;
+}
+function removeMs(id){ msItems=msItems.filter(m=>m.id!==id); renderMsInputs(); document.getElementById('add-ms-btn').disabled=false; }
+function updMs(id,k,v){ const m=msItems.find(m=>m.id===id); if(m) m[k]=v; }
+function renderMsInputs(){
+  document.getElementById('ms-list').innerHTML = msItems.map(m=>`
+    <div class="ms-row">
+      <input type="text" value="${esc(m.text)}" placeholder="マイルストーン名" oninput="updMs(${m.id},'text',this.value)">
+      <input type="date" value="${esc(m.date)}" oninput="updMs(${m.id},'date',this.value)">
+      <button class="btn-icon" style="color:var(--danger);" onclick="removeMs(${m.id})">×</button>
+    </div>`).join('');
+}
+
+function clearForm(){
+  ['f-content','f-period','f-owner','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-prio').value='';
+  msItems=[]; renderMsInputs(); document.getElementById('add-ms-btn').disabled=false;
+}
+
+// ────────────────────────────────────────
+// SUBMIT GOAL
+// ────────────────────────────────────────
+async function submitGoal() {
+  const content = document.getElementById('f-content').value.trim();
+  const period  = document.getElementById('f-period').value.trim();
+  const prio    = document.getElementById('f-prio').value;
+  if(!content||!period||!prio){ toast('必須項目を入力してください','ng'); return; }
+
+  const goal = {
+    id: Date.now(), content, period,
+    owner: document.getElementById('f-owner').value.trim(),
+    priority: prio,
+    note: document.getElementById('f-note').value.trim(),
+    milestones: msItems.map(m=>({...m,done:false})),
+    createdAt: new Date().toISOString(),
+    progress: 0
+  };
+
+  S.goals.push(goal); saveLocal(); clearForm();
+  toast('目標を追加しました。AIがタスクを生成中...');
+  renderRecent();
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true; btn.textContent='処理中...';
+  try {
+    await genTasks(goal);
+    if(S.config?.hasSheets) {
+      await syncKPI();
+      await syncTasks();
+    }
+  } finally {
+    btn.disabled=false; btn.textContent='目標を追加 → AIタスク生成 → Sheetsへ転記';
+  }
+}
+
+// ────────────────────────────────────────
+// AI タスク生成
+// ────────────────────────────────────────
+async function genTasks(goal) {
+  try {
+    const r = await fetch('/api/generate-tasks',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({goal})
+    });
+    if(!r.ok){ const e=await r.json(); throw new Error(e.error); }
+    const {tasks} = await r.json();
+    tasks.forEach(t=>S.tasks.push({
+      id:Date.now()+Math.random(), goalId:goal.id,
+      date:t.date, time:t.time, name:t.name, detail:t.detail,
+      priority:t.priority, done:false, note:''
+    }));
+    saveLocal(); toast(`AIが${tasks.length}件のタスクを生成しました！`);
+    renderWeekly(); updateProgress(goal.id);
+  } catch(e) {
+    toast('AI生成失敗。サンプルタスクを追加します。','ng');
+    genSample(goal);
+  }
+}
+
+function genSample(goal) {
+  const today=new Date(); const mon=new Date(today);
+  mon.setDate(today.getDate()-((today.getDay()+6)%7));
+  const days=Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d.toISOString().split('T')[0]; });
+  [
+    {o:0,t:'09-12',n:'現状分析・課題整理',d:'現状の課題と改善機会をリストアップ'},
+    {o:1,t:'12-15',n:'関係者へのヒアリング',d:'ステークホルダーと目標・方針を共有'},
+    {o:2,t:'09-12',n:'アクションプラン作成',d:'具体的な施策と工程表を策定'},
+    {o:3,t:'15-18',n:'週次進捗レポート',d:'進捗をまとめて関係者に共有'},
+    {o:4,t:'09-12',n:'施策の実行',d:'計画に基づいて具体的な施策を推進'},
+    {o:5,t:'12-15',n:'振り返りとネクスト整理',d:'今週の学びを整理し来週を確定'},
+  ].forEach(s=>{ if(!days[s.o]) return; S.tasks.push({id:Date.now()+Math.random(),goalId:goal.id,date:days[s.o],time:s.t,name:s.n,detail:s.d,priority:goal.priority,done:false,note:''}); });
+  saveLocal(); renderWeekly(); toast('サンプルタスクを追加しました');
+}
+
+// ────────────────────────────────────────
+// RENDER RECENT
+// ────────────────────────────────────────
+function renderRecent() {
+  const wrap=document.getElementById('recent-wrap');
+  const list=document.getElementById('recent-list');
+  const items=S.goals.slice(-3).reverse();
+  if(!items.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  list.innerHTML=items.map(g=>`
+    <div class="kpi-card" style="margin-bottom:7px;">
+      <div class="kpi-main">
+        <div class="kpi-idx">●</div>
+        <div class="kpi-body">
+          <div class="kpi-name">${esc(g.content)}</div>
+          <div class="kpi-meta">
+            <span class="pb ${pClass(g.priority)}">${pLabel(g.priority)}</span>
+            <span class="kpi-mi">📅 ${esc(g.period)}</span>
+            ${g.owner?`<span class="kpi-mi">👤 ${esc(g.owner)}</span>`:''}
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ────────────────────────────────────────
+// RENDER KPI
+// ────────────────────────────────────────
+function renderKPI() {
+  const sortMode=document.getElementById('kpi-sort')?.value||'priority';
+  const goals=[...S.goals];
+  if(sortMode==='priority') goals.sort((a,b)=>pOrder(a.priority)-pOrder(b.priority));
+  document.getElementById('s-total').textContent=goals.length;
+  document.getElementById('s-active').textContent=goals.filter(g=>g.progress<100).length;
+  const avg=goals.length?Math.round(goals.reduce((s,g)=>s+(g.progress||0),0)/goals.length):0;
+  document.getElementById('s-avg').textContent=avg+'%';
+  const list=document.getElementById('kpi-list');
+  if(!goals.length){ list.innerHTML=`<div class="empty"><div class="empty-ico">🎯</div>目標がまだありません。<br>「目標入力」タブから追加してください。</div>`; return; }
+  list.innerHTML=goals.map((g,i)=>{
+    const tc=S.tasks.filter(t=>t.goalId===g.id).length;
+    const dc=S.tasks.filter(t=>t.goalId===g.id&&t.done).length;
+    const ms=g.milestones?.length?`
+      <div class="kpi-ms">
+        <div class="kpi-ms-title">マイルストーン</div>
+        ${g.milestones.map(m=>`
+          <div class="ms-check">
+            <input type="checkbox" ${m.done?'checked':''} onchange="toggleMs(${g.id},${m.id})">
+            <label class="ms-check-lbl ${m.done?'done':''}" onclick="toggleMs(${g.id},${m.id})">
+              <span>${esc(m.text||'（未入力）')}</span>
+              ${m.date?`<span class="ms-date">${esc(m.date)}</span>`:''}
+            </label>
+          </div>`).join('')}
+      </div>`:'';
+    return `
+      <div class="kpi-card">
+        <div class="kpi-main">
+          <div class="kpi-idx">${String(i+1).padStart(2,'0')}</div>
+          <div class="kpi-body">
+            <div class="kpi-name" contenteditable="true" onblur="updGoal(${g.id},'content',this.textContent.trim())">${esc(g.content)}</div>
+            <div class="kpi-meta">
+              <span class="pb ${pClass(g.priority)}">${pLabel(g.priority)}</span>
+              <span class="kpi-mi">📅 ${esc(g.period)}</span>
+              ${g.owner?`<span class="kpi-mi">👤 ${esc(g.owner)}</span>`:''}
+              ${g.note?`<span class="kpi-mi">📝 ${esc(g.note)}</span>`:''}
+            </div>
+            <div class="prog-wrap"><div class="prog-fill" style="width:${g.progress||0}%"></div></div>
+            <div class="prog-lbl">${g.progress||0}% 達成（タスク ${dc}/${tc}件完了）</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+            <button class="btn btn-sm btn-del" onclick="delGoal(${g.id})">削除</button>
+          </div>
+        </div>${ms}
+      </div>`;
+  }).join('');
+}
+
+function updGoal(id,k,v){ const g=S.goals.find(g=>g.id===id); if(g){g[k]=v;saveLocal();} }
+function delGoal(id){
+  if(!confirm('この目標と関連タスクを削除しますか？')) return;
+  S.goals=S.goals.filter(g=>g.id!==id); S.tasks=S.tasks.filter(t=>t.goalId!==id);
+  saveLocal(); renderKPI(); toast('目標を削除しました');
+}
+function toggleMs(gId,mId){
+  const g=S.goals.find(g=>g.id===gId); if(!g) return;
+  const m=g.milestones.find(m=>m.id===mId); if(!m) return;
+  m.done=!m.done; saveLocal(); updateProgress(gId); renderKPI();
+  if(S.config?.hasSheets) {
+    fetch('/api/sheets/update-milestone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({goalName:g.content,milestoneText:m.text,done:m.done})}).catch(()=>{});
+  }
+}
+
+// ────────────────────────────────────────
+// RENDER WEEKLY
+// ────────────────────────────────────────
+function renderWeekly() {
+  const grid=document.getElementById('week-grid');
+  const today=new Date(); const mon=new Date(today);
+  mon.setDate(today.getDate()-((today.getDay()+6)%7));
+  const dayNames=['月','火','水','木','金','土','日'];
+  const sortMode=document.getElementById('w-sort')?.value||'priority';
+  const tOrder={'09-12':0,'12-15':1,'15-18':2,'18-21':3,'21-24':4};
+  const todayStr=today.toISOString().split('T')[0];
+  grid.innerHTML=Array.from({length:7},(_,i)=>{
+    const d=new Date(mon); d.setDate(mon.getDate()+i);
+    const ds=d.toISOString().split('T')[0]; const isToday=ds===todayStr;
+    let tasks=S.tasks.filter(t=>t.date===ds);
+    if(sortMode==='priority') tasks.sort((a,b)=>pOrder(a.priority)-pOrder(b.priority));
+    else tasks.sort((a,b)=>(tOrder[a.time]||0)-(tOrder[b.time]||0));
+    const tHtml=tasks.map(t=>`
+      <div class="task-card ${t.done?'done':''}">
+        <div class="tc-top">
+          <input type="checkbox" class="tc-chk" ${t.done?'checked':''} onchange="toggleTask(${t.id})">
+          <div class="tc-name" contenteditable="true" onblur="updTask(${t.id},'name',this.textContent.trim())">${esc(t.name)}</div>
+        </div>
+        ${t.detail?`<div class="tc-detail">${esc(t.detail)}</div>`:''}
+        <div class="tc-foot">
+          <span class="tc-time">${t.time}</span>
+          <span class="pb ${pClass(t.priority)}">${pLabel(t.priority)}</span>
+        </div>
+      </div>`).join('')||`<div style="padding:6px;font-size:9px;color:var(--text2);text-align:center;">タスクなし</div>`;
+    return `
+      <div class="day-col ${isToday?'today':''}">
+        <div class="day-hd"><div class="day-name">${dayNames[i]}</div><div class="day-date">${d.getMonth()+1}/${d.getDate()}</div></div>
+        <div class="day-tasks">${tHtml}</div>
+        <div class="day-add"><button class="day-add-btn" onclick="openAddTask('${ds}')">+ タスク追加</button></div>
+      </div>`;
+  }).join('');
+}
+
+function toggleTask(id) {
+  const t=S.tasks.find(t=>t.id===id); if(!t) return;
+  t.done=!t.done; saveLocal();
+  if(t.goalId) updateProgress(t.goalId);
+  renderWeekly();
+  // Sheetsにリアルタイム反映
+  if(S.config?.hasSheets) {
+    fetch('/api/sheets/update-check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({taskName:t.name,done:t.done})}).catch(()=>{});
+    // KPI進捗率も更新
+    const g=S.goals.find(g=>g.id===t.goalId);
+    if(g) fetch('/api/sheets/update-progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({goalName:g.content,progress:g.progress})}).catch(()=>{});
+  }
+}
+function updTask(id,k,v){ const t=S.tasks.find(t=>t.id===id); if(t){t[k]=v;saveLocal();} }
+function updateProgress(goalId) {
+  const g=S.goals.find(g=>g.id===goalId); if(!g) return;
+  const tasks=S.tasks.filter(t=>t.goalId===goalId);
+  let total=0,done=0;
+  tasks.forEach(t=>{total++;if(t.done)done++;});
+  g.milestones?.forEach(m=>{total++;if(m.done)done++;});
+  g.progress=total?Math.round(done/total*100):0;
+  saveLocal();
+}
+
+// ────────────────────────────────────────
+// TASK MODAL
+// ────────────────────────────────────────
+function openAddTask(date) {
+  document.getElementById('mt-date').value=date||new Date().toISOString().split('T')[0];
+  document.getElementById('mt-name').value='';
+  document.getElementById('mt-detail').value='';
+  document.getElementById('mt-prio').value='mid';
+  const sel=document.getElementById('mt-goal');
+  sel.innerHTML='<option value="">なし</option>'+S.goals.map(g=>`<option value="${g.id}">${esc(g.content.slice(0,30))}</option>`).join('');
+  document.getElementById('m-task').classList.add('on');
+}
+function saveTask() {
+  const name=document.getElementById('mt-name').value.trim();
+  if(!name){ toast('タスク名を入力してください','ng'); return; }
+  const gId=document.getElementById('mt-goal').value;
+  const task={id:Date.now(),goalId:gId?parseInt(gId):null,date:document.getElementById('mt-date').value,time:document.getElementById('mt-time').value,name,detail:document.getElementById('mt-detail').value.trim(),priority:document.getElementById('mt-prio').value,done:false,note:''};
+  S.tasks.push(task); saveLocal(); closeM('m-task'); renderWeekly(); toast('タスクを追加しました');
+}
+function closeM(id){ document.getElementById(id).classList.remove('on'); }
+
+// ────────────────────────────────────────
+// SYNC
+// ────────────────────────────────────────
+async function syncKPI() {
+  const r=document.getElementById('res-kpi');
+  try {
+    showSyncResult('res-kpi',true,'転記中...');
+    const res=await fetch('/api/sheets/sync-kpi',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({goals:S.goals})});
+    if(!res.ok){ const e=await res.json(); throw new Error(e.error); }
+    const {updated}=await res.json();
+    showSyncResult('res-kpi',true,`✓ ${updated}件の目標を転記しました`);
+    toast('シート1（中長期KPI）への転記完了！');
+  } catch(e){ showSyncResult('res-kpi',false,'エラー: '+e.message); toast('KPI転記エラー: '+e.message,'ng'); }
+}
+
+async function syncTasks() {
+  try {
+    showSyncResult('res-tasks',true,'転記中...');
+    const res=await fetch('/api/sheets/sync-tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks:S.tasks})});
+    if(!res.ok){ const e=await res.json(); throw new Error(e.error); }
+    const {updated}=await res.json();
+    showSyncResult('res-tasks',true,`✓ ${updated}件のタスクを転記しました`);
+    toast('シート2（日別目標設定）への転記完了！');
+  } catch(e){ showSyncResult('res-tasks',false,'エラー: '+e.message); toast('タスク転記エラー: '+e.message,'ng'); }
+}
+
+async function syncAll() {
+  if(!S.config?.hasSheets){ go('settings'); toast('まず設定タブでSheetsを設定してください'); return; }
+  showSyncResult('res-all',true,'同期中...');
+  try {
+    await syncKPI();
+    await syncTasks();
+    showSyncResult('res-all',true,'✓ 一括同期が完了しました');
+    toast('一括同期完了！');
+  } catch(e){ showSyncResult('res-all',false,'エラー: '+e.message); }
+}
+
+function showSyncResult(id,ok,msg) {
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=msg; el.className='sync-result '+(ok?'ok':'ng'); el.style.display='block';
+}
+
+// ────────────────────────────────────────
+// SETTINGS
+// ────────────────────────────────────────
+async function renderSettings() {
+  const el=document.getElementById('env-status');
+  if(!S.config) await fetchConfig();
+  const cfg=S.config;
+  if(!cfg){ el.innerHTML=`<div class="alert alert-warn">サーバーへの接続に失敗しました</div>`; return; }
+  el.innerHTML=`
+    <table class="env-table">
+      <thead><tr><th>変数名</th><th>状態</th></tr></thead>
+      <tbody>
+        <tr><td>ANTHROPIC_API_KEY</td><td><span class="${cfg.hasAnthropicKey?'badge-ok':'badge-ng'}">${cfg.hasAnthropicKey?'設定済':'未設定'}</span></td></tr>
+        <tr><td>GOOGLE_SERVICE_ACCOUNT_JSON</td><td><span class="${cfg.hasSheets?'badge-ok':'badge-ng'}">${cfg.hasSheets?'設定済':'未設定'}</span></td></tr>
+        <tr><td>SPREADSHEET_ID</td><td><span style="font-size:10px;color:var(--text2);">${esc(cfg.spreadsheetId||'未設定')}</span></td></tr>
+      </tbody>
+    </table>`;
+}
+
+// ────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
